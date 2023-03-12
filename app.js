@@ -100,8 +100,7 @@ const fs = require('fs')
 
   router.get('/manage', function(req, res) {
     res.status(200)
-    
-   
+  
     // getting-started.js
     const mongoose = require('mongoose');
     main().catch(err => console.log(err));
@@ -163,7 +162,7 @@ const fs = require('fs')
     // find all athletes who play tennis, selecting the 'name' and 'age' fields
     const exists_sku = products.find({ sku: req.body.sku } ).then((data) => {
       if(data != null && data != '') {     
-        console.log('exists sku: '+ req.body.sku);
+        console.log('existing sku: '+ req.body.sku);
         res.render('form.ejs',{
           obj:obj
         }) 
