@@ -1,0 +1,43 @@
+<%- include('header'); %>
+    <body>
+        <nav class="navbar navbar-expand-md navbar-light bg-dark">
+            <a href="/" class="navbar-brand"><img src="images/home/logo.png"></a>
+            <ul class="navbar-nav">
+                <li class="nav-item dropdown"><a class="nav-link text-light text-uppercase font-weight-bold px-3 dropdown-toggle"
+                  href="" data-toggle="dropdown">ระบบหลังบ้าน</a>
+                  <div class="dropdown-menu">
+                    <a class="dropdown-item" href="/manage">จัดการสินค้า</a>
+                    <a class="dropdown-item" href="/form">บันทึกสินค้า</a>
+                  </div>
+                </li>
+            </ul>
+        </nav>
+        <div class="container pt-5">
+            <div class="row my-3">
+                <% Object.values(obj).forEach(function(item) { %>
+                
+                <div class="col-lg-4 col-md-6 mb-4">
+                    <div class="card h-100">
+                        <a href="/product/<%- item.id %>"><img class="card-img-top" src="https://picsum.photos/id/<%- item.id %>/200/200" alt="" /></a>
+                        <div class="card-body">
+                            <h4 class="card-title">
+                                <a href="product.html"><%- item.name %></a>
+                            </h4>
+                            <h5>ราคา <%- new Intl.NumberFormat('en-IN', { maximumSignificantDigits: 3 }).format(item.price)  %> บาท</h5>
+                            <p class="card-text">Lorem ipsum dolor sit amet consectetur adipisicing elit. Incidunt reprehenderit ea iure, rerum debitis ab voluptate delectus doloribus</p>
+                        </div>
+                    </div>
+                </div>
+                <% }) %>
+
+             
+            </div>
+
+            
+
+            
+        </div>
+
+        <%- include('footer'); %>
+    </body>
+</html>
