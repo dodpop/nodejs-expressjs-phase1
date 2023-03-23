@@ -18,7 +18,7 @@
                   <% Object.values(obj).forEach(function(item) { %>
                     <%- item.sku %> is duplicate
                     <% }) %></p>
-                    <form class="form-horizontal" method="post" action="/insertdata">
+                    <form class="form-horizontal" method="post" action="/insertdata" enctype="multipart/form-data">
                       <div class="form-group">
                         <label class="control-label col-sm-2">SKU</label>
                         <div class="col-sm-10">

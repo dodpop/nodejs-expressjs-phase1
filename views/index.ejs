@@ -18,13 +18,13 @@
                 
                 <div class="col-lg-4 col-md-6 mb-4">
                     <div class="card h-100">
-                        <a href="/product/<%- item.id %>"><img class="card-img-top" src="https://picsum.photos/id/<%- item.id %>/200/200" alt="" /></a>
+                        <a href="/product/<%- item._id %>"><img class="card-img-top" src="/images/products/<%- item.productimage %>" alt="" /></a>
                         <div class="card-body">
                             <h4 class="card-title">
-                                <a href="product.html"><%- item.name %></a>
+                                <a href="/product/<%- item.id %>"><%- item.name %></a>
                             </h4>
                             <h5>ราคา <%- new Intl.NumberFormat('en-IN', { maximumSignificantDigits: 3 }).format(item.price)  %> บาท</h5>
-                            <p class="card-text">Lorem ipsum dolor sit amet consectetur adipisicing elit. Incidunt reprehenderit ea iure, rerum debitis ab voluptate delectus doloribus</p>
+                            <p class="card-text"><%- item.description %></p>
                         </div>
                     </div>
                 </div>
