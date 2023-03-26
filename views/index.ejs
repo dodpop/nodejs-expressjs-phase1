@@ -21,7 +21,7 @@
                         <a href="/product/<%- item._id %>"><img class="card-img-top" src="/images/products/<%- item.productimage %>" alt="" /></a>
                         <div class="card-body">
                             <h4 class="card-title">
-                                <a href="/product/<%- item.id %>"><%- item.name %></a>
+                                <a href="/product/<%- item._id %>"><%- item.name %></a>
                             </h4>
                             <h5>ราคา <%- new Intl.NumberFormat('en-IN', { maximumSignificantDigits: 3 }).format(item.price)  %> บาท</h5>
                             <p class="card-text"><%- item.description %></p>

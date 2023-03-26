@@ -55,26 +55,29 @@ const fs = require('fs')
   app.set('views',path.join(__dirname,'views'))
   app.set('view engine','ejs')
 
-  
+   // getting-started.js
+   const mongoose = require('mongoose');
+   main().catch(err => console.log(err));
+   async function main() {
+     await mongoose.connect('mongodb://127.0.0.1:27017/productDB');      
+     // use `await mongoose.connect('mongodb://user:password@127.0.0.1:27017/productDB');` if your database has auth enabled
+   }
+ 
+
+  const products = require('./models/product_model');
   const bodyParser = require("body-parser")
   router.use(bodyParser.urlencoded({
       extended:true
   }));
 
 
+   
+ 
+
   router.get('/', function(req, res) {
     res.status(200)
   
-    // getting-started.js
-    const mongoose = require('mongoose');
-    main().catch(err => console.log(err));
-    async function main() {
-      await mongoose.connect('mongodb://127.0.0.1:27017/productDB');      
-      // use `await mongoose.connect('mongodb://user:password@127.0.0.1:27017/productDB');` if your database has auth enabled
-    }
   
-
-    const products = require('./models/product_model');
  
     // find all athletes who play tennis, selecting the 'name' and 'age' fields
     const exists_sku = products.find({ sku: { $ne: null } } ).then((data) => {
@@ -94,6 +97,31 @@ const fs = require('fs')
   })
 })
 
+router.get('/product/:id', function(req, res) {
+ 
+          products.findOne({_id: req.params.id })
+         .then(productdata => {
+            console.log(productdata);
+            if(productdata != null && productdata != '') {   
+              res.render('product.ejs',{
+                productdata:productdata
+              }) 
+            }else{
+              res.writeHead(302, {
+                'Location': '/form'
+                //add other headers here...
+              });
+              res.end();
+            }
+
+            
+         })
+       .catch(err => {
+          console.log(err)
+       })
+       
+  })
+
   router.get('/form', function(req, res) {
     res.status(200)
     const obj = [];
@@ -105,18 +133,7 @@ const fs = require('fs')
   
 
   router.get('/manage', function(req, res) {
-    res.status(200)
   
-    // getting-started.js
-    const mongoose = require('mongoose');
-    main().catch(err => console.log(err));
-    async function main() {
-      await mongoose.connect('mongodb://127.0.0.1:27017/productDB');      
-      // use `await mongoose.connect('mongodb://user:password@127.0.0.1:27017/productDB');` if your database has auth enabled
-    }
-  
-
-    const products = require('./models/product_model');
  
     // find all athletes who play tennis, selecting the 'name' and 'age' fields
     const exists_sku = products.find({ sku: { $ne: null } } ).then((data) => {
@@ -143,6 +160,59 @@ const fs = require('fs')
     
     
   })
+
+  router.get('/edit/:id', function(req, res) {
+ 
+      products.findOne({_id: req.params.id })
+      .then(productdata => {
+        console.log(productdata);
+        if(productdata != null && productdata != '') {   
+          res.render('form.ejs',{
+            productdata:productdata
+          }) 
+        }else{
+          res.writeHead(302, {
+            'Location': '/form'
+            //add other headers here...
+          });
+          res.end();
+        }
+
+        
+      })
+      .catch(err => {
+          console.log(err)
+      })
+
+})
+
+
+
+  router.get('/delete/:id', function(req, res) {
+    res.status(200)
+  
+    var idtodelete = req.params.id
+    // getting-started.js
+    const mongoose = require('mongoose');
+    main().catch(err => console.log(err));
+    async function main() {
+      await mongoose.connect('mongodb://127.0.0.1:27017/productDB');      
+      // use `await mongoose.connect('mongodb://user:password@127.0.0.1:27017/productDB');` if your database has auth enabled
+    }
+  
+
+    const products = require('./models/product_model');
+ 
+    // find all athletes who play tennis, selecting the 'name' and 'age' fields
+    const exists_sku = products.findByIdAndDelete(idtodelete ,{useFindAndModify:false}).exec()
+    res.writeHead(302, {
+      'Location': '/manage'
+      //add other headers here...
+    });
+    res.end();
+ 
+    
+  })
   
   var multer = require('multer');
  
@@ -154,21 +224,20 @@ const fs = require('fs')
       filename: (req, file, cb) => {
         let extArray = file.mimetype.split("/");
         let extension = extArray[extArray.length - 1];
-        productimage  = file.fieldname + '-' + Date.now()+ '.' +extension
+        // productimage  = file.fieldname + '-' + Date.now()+ '.' +extension
+        productimage  =  'image_' + Date.now()+ '.' +extension
         cb(null, productimage)
       }
   });
   
   var upload = multer({ storage: storage });
 
- 
-
-
   router.post('/insertdata',upload.single('image'), function(req, res) {
     res.status(200)
     var sku = req.body.sku;
     var name = req.body.name;
     var price = Number(req.body.price);
+    var productimage = req.file.filename;
     var description = req.body.description;
     const obj = [{id:0, sku: sku, name: name, description: description,price:price}];
     // console.log(obj);
@@ -177,15 +246,15 @@ const fs = require('fs')
     const mongoose = require('mongoose');
     main().catch(err => console.log(err));
     async function main() {
-      await mongoose.connect('mongodb://127.0.0.1:27017/productDB',{
+      await mongoose.connect('  ',{
         useNewUrlParser:true,
         useUnifiedTopology:true
       }).catch(err=>console.log(err))
       // use `await mongoose.connect('mongodb://user:password@127.0.0.1:27017/productDB');` if your database has auth enabled
     }
-  
+
  
-    const products = require('./models/product_model');
+
  
 
     // find all athletes who play tennis, selecting the 'name' and 'age' fields
