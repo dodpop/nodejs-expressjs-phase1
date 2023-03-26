@@ -167,7 +167,7 @@ router.get('/product/:id', function(req, res) {
       .then(productdata => {
         console.log(productdata);
         if(productdata != null && productdata != '') {   
-          res.render('form.ejs',{
+          res.render('form_edit.ejs',{
             productdata:productdata
           }) 
         }else{
@@ -290,6 +290,72 @@ router.get('/product/:id', function(req, res) {
     
     
   })
+
+
+  router.post('/updatedata',upload.single('image'), function(req, res) {
+    res.status(200)
+    var sku = req.body.sku;
+    var name = req.body.name;
+    var price = Number(req.body.price);
+    if(req.file){
+      var productimage = req.file.filename;
+    }else{
+      req.body.currentimg
+    }
+    
+    var description = req.body.description;
+    const obj = [{id:0, sku: sku, name: name, description: description,price:price}];
+    // console.log(obj);
+
+    // getting-started.js
+    const mongoose = require('mongoose');
+    main().catch(err => console.log(err));
+    async function main() {
+      await mongoose.connect('  ',{
+        useNewUrlParser:true,
+        useUnifiedTopology:true
+      }).catch(err=>console.log(err))
+      // use `await mongoose.connect('mongodb://user:password@127.0.0.1:27017/productDB');` if your database has auth enabled
+    }
+
+ 
+ 
+    const exists_sku = products.find({ _id: req.body._id } ).then((data) => {
+      if(data != null && data != '') {     
+       
+        products.updateOne(
+                  { "_id": req.body._id}, // Filter
+                  {$set: {sku:sku, name: name, price : price, productimage:productimage, description :description}}, // Update
+                  {upsert: true} // add document with req.body._id if not exists 
+
+            )
+            .then((obj) => {
+                    console.log('Updated - ' + obj);
+                    res.redirect('/manage')
+              })
+              .catch((err) => {
+                console.log('Error: ' + err);
+              })
+
+      }else{
+     
+ 
+
+       
+        res.writeHead(302, {
+          'Location': '/manage'
+          //add other headers here...
+        });
+        res.end();
+      }
+      
+    });
+
+    
+    
+    
+  })
+
 
 
 // Set Port
