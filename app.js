@@ -5,7 +5,7 @@ var app = express();
 const router = express.Router()
 var path = require('path');
 const fs = require('fs')
-
+const cookieParser = require('cookie-parser')
  
 // app.get('/user/:id', function(req, res) {
 //     const query = req.query;// query = {sex:"female"}
@@ -49,9 +49,8 @@ const fs = require('fs')
 
   
   app.use(router)
+
   app.use(express.static(path.join(__dirname,'public')))
-
-
   app.set('views',path.join(__dirname,'views'))
   app.set('view engine','ejs')
 
@@ -71,7 +70,7 @@ const fs = require('fs')
   }));
 
 
-   
+  router.use(cookieParser())
  
 
   router.get('/', function(req, res) {
@@ -134,24 +133,34 @@ router.get('/product/:id', function(req, res) {
 
   router.get('/manage', function(req, res) {
   
- 
-    // find all athletes who play tennis, selecting the 'name' and 'age' fields
-    const exists_sku = products.find({ sku: { $ne: null } } ).then((data) => {
-      if(data != null && data != '') {     
-         
-        res.render('manage.ejs',{
-          obj:data
-        }) 
-      }else{
-        
-        res.writeHead(302, {
-          'Location': '/form'
-          //add other headers here...
-        });
-        res.end();
-      }
+    if (req.cookies["adminlogin"]) {
+    
+          // find all athletes who play tennis, selecting the 'name' and 'age' fields
+          const exists_sku = products.find({ sku: { $ne: null } } ).then((data) => {
+            if(data != null && data != '') {     
+              
+              res.render('manage.ejs',{
+                obj:data
+              }) 
+            }else{
+              
+              res.writeHead(302, {
+                'Location': '/form'
+                //add other headers here...
+              });
+              res.end();
+            }
+          });
+    }else{
+      res.writeHead(302, {
+        'Location': '/login'
+      });
+      res.end();
+    }
+
+    
       
-    });
+  
 
    
     // var admin_user_model = require('./models/adminusers_model');
@@ -173,7 +182,6 @@ router.get('/product/:id', function(req, res) {
         }else{
           res.writeHead(302, {
             'Location': '/form'
-            //add other headers here...
           });
           res.end();
         }
@@ -207,7 +215,6 @@ router.get('/product/:id', function(req, res) {
     const exists_sku = products.findByIdAndDelete(idtodelete ,{useFindAndModify:false}).exec()
     res.writeHead(302, {
       'Location': '/manage'
-      //add other headers here...
     });
     res.end();
  
@@ -276,7 +283,6 @@ router.get('/product/:id', function(req, res) {
         console.log('inserted');
         res.writeHead(302, {
           'Location': '/manage'
-          //add other headers here...
         });
         res.end();
       }
@@ -284,8 +290,7 @@ router.get('/product/:id', function(req, res) {
     });
 
    
-    // var admin_user_model = require('./models/adminusers_model');
-    // admin_user_model.create({username : 'Test', password : '12345', email : 'kusumoto.com@gmail.com'}  );
+  
  
     
     
@@ -356,6 +361,94 @@ router.get('/product/:id', function(req, res) {
     
   })
 
+
+  router.get('/addadmin', function(req, res) {
+    res.status(200)
+  
+  
+ 
+    var admin_user_model = require('./models/adminusers_model');
+    admin_user_model.create({username : 'Test', password : '12345', email : 'kusumoto.com@gmail.com'}  );
+    res.writeHead(302, {
+      'Location': '/login'
+    });
+    res.end();
+})
+
+router.get('/login', function(req, res) {
+  res.status(200)
+  if (req.cookies["adminlogin"]) {
+    res.writeHead(302, {
+      'Location': '/manage'
+    });
+    res.end();
+  }else{
+    const obj = [];
+    res.render('login.ejs',{
+      obj:obj
+    }) 
+  }
+  
+})
+
+router.get('/logout', function(req, res) {
+  res.status(200)
+  res.clearCookie("username");
+  res.clearCookie("adminlogin");
+    res.writeHead(302, {
+      'Location': '/manage'
+    });
+    res.end();
+  
+  
+})
+
+router.post('/loginaction', function(req, res) {
+  res.status(200)
+
+  var username = req.body.username
+  var password = req.body.password
+  console.log(username);
+  var admin_user_model = require('./models/adminusers_model');
+  admin_user_model.findOne({username: username  })
+  .then(admindata => {
+    if (admindata && admindata.password != password ){
+      console.log("Credentials wrong 0");
+      res.cookie('username','',{maxAge:10000*60*24})
+      res.cookie('adminlogin',false,{maxAge:10000*60*24})
+      const obj = [{err:'Credentials wrong 0'}];
+      res.render('login.ejs',{
+        obj:obj
+      }) 
+    }else if (admindata && admindata.password == password){
+      console.log('User and password is correct')
+      res.cookie('username',username,{maxAge:10000*60*24})
+      res.cookie('login',true,{maxAge:10000*60*24})
+      res.writeHead(302, {
+        'Location': '/manage'
+      });
+      res.end();
+    
+    } else {
+      console.log("Credentials wrong");
+      res.cookie('username','',{maxAge:10000*60*24})
+      res.cookie('login',false,{maxAge:10000*60*24})
+      const obj = [{err:'Credentials wrong 1',username1:username }];
+      res.render('login.ejs',{
+        obj:obj
+      }) 
+    }      
+
+     
+
+     
+  })
+  .catch(err => {
+    console.log(err)
+  })
+
+   
+})
 
 
 // Set Port
