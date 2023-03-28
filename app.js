@@ -430,10 +430,10 @@ router.post('/loginaction', function(req, res) {
   admin_user_model.findOne({username: username  })
   .then(admindata => {
     if (admindata && admindata.password != password ){
-      console.log("Credentials wrong 0");
+      console.log("Password is incorrect.");
       res.cookie('username','',{maxAge:10000*60*24})
       res.cookie('adminlogin',false,{maxAge:10000*60*24})
-      const obj = [{err:'Credentials wrong 0'}];
+      const obj = [{err:'Password is incorrect.'}];
       res.render('login.ejs',{
         obj:obj
       }) 
