@@ -6,6 +6,7 @@ const router = express.Router()
 var path = require('path');
 const fs = require('fs')
 const cookieParser = require('cookie-parser')
+const session = require('express-session')
  
 // app.get('/user/:id', function(req, res) {
 //     const query = req.query;// query = {sex:"female"}
@@ -71,8 +72,24 @@ const cookieParser = require('cookie-parser')
 
 
   router.use(cookieParser())
- 
-
+  router.use(
+    session({
+   
+        secret: "my_session_secret", 
+        resave: true, 
+        saveUninitialized: false, 
+        cookie:{
+            // Only set to true if you are using HTTPS.
+            // Secure Set-Cookie attribute.
+            secure:false, 
+            // Only set to true if you are using HTTPS.
+            httpOnly:false,
+            // Session max age in milliseconds. (1 min)
+            // Calculates the Expires Set-Cookie attribute
+            maxAge:60000
+        } 
+    })
+);
   router.get('/', function(req, res) {
     res.status(200)
   
@@ -121,54 +138,11 @@ router.get('/product/:id', function(req, res) {
        
   })
 
-  router.get('/form', function(req, res) {
-    res.status(200)
-    const obj = [];
-    res.render('form.ejs',{
-      obj:obj
-    }) 
-  })
 
+    
   
 
-  router.get('/manage', function(req, res) {
   
-    if (req.cookies["adminlogin"]) {
-    
-          // find all athletes who play tennis, selecting the 'name' and 'age' fields
-          const exists_sku = products.find({ sku: { $ne: null } } ).then((data) => {
-            if(data != null && data != '') {     
-              
-              res.render('manage.ejs',{
-                obj:data
-              }) 
-            }else{
-              
-              res.writeHead(302, {
-                'Location': '/form'
-                //add other headers here...
-              });
-              res.end();
-            }
-          });
-    }else{
-      res.writeHead(302, {
-        'Location': '/login'
-      });
-      res.end();
-    }
-
-    
-      
-  
-
-   
-    // var admin_user_model = require('./models/adminusers_model');
-    // admin_user_model.create({username : 'Test', password : '12345', email : 'kusumoto.com@gmail.com'}  );
- 
-    
-    
-  })
 
   router.get('/edit/:id', function(req, res) {
  
@@ -394,7 +368,8 @@ router.get('/product/:id', function(req, res) {
 
 router.get('/login', function(req, res) {
   res.status(200)
-  if (req.cookies["adminlogin"]) {
+  // if (req.cookies["adminlogin"]) {
+  if (req.session.adminlogin) {
     res.writeHead(302, {
       'Location': '/manage'
     });
@@ -410,20 +385,36 @@ router.get('/login', function(req, res) {
 
 router.get('/logout', function(req, res) {
   res.status(200)
-  res.clearCookie("username");
-  res.clearCookie("adminlogin");
-    res.writeHead(302, {
-      'Location': '/manage'
-    });
-    res.end();
+  req.session.username = ''
+  req.session.adminlogin = false
+  req.session.cookie.maxAge = 10000*60*24
+  req.session.destroy();
+ 
+  res.writeHead(302, {
+    'Location': '/login'
+  });
+  res.end();
+  
+  // res.clearCookie("username");
+  // res.clearCookie("adminlogin");
+  // res.writeHead(302, {
+  //   'Location': '/manage'
+  // });
+  // res.end();
   
   
 })
 
 router.post('/loginaction', function(req, res) {
   res.status(200)
-
+  
   var username = req.body.username
+  if(username.length<1){
+      const obj = [{err:'Credentials wrong',username1:username }];
+      res.render('login.ejs',{
+        obj:obj
+      }) 
+  }
   var password = req.body.password
   console.log(username);
   var admin_user_model = require('./models/adminusers_model');
@@ -431,16 +422,24 @@ router.post('/loginaction', function(req, res) {
   .then(admindata => {
     if (admindata && admindata.password != password ){
       console.log("Password is incorrect.");
-      res.cookie('username','',{maxAge:10000*60*24})
-      res.cookie('adminlogin',false,{maxAge:10000*60*24})
+      req.session.username = username
+      req.session.adminlogin = false
+      req.session.cookie.maxAge = 10000*60*24
+      req.session.save()
+      // res.cookie('username','',{maxAge:10000*60*24})
+      // res.cookie('adminlogin',false,{maxAge:10000*60*24})
       const obj = [{err:'Password is incorrect.'}];
       res.render('login.ejs',{
         obj:obj
       }) 
     }else if (admindata && admindata.password == password){
       console.log('User and password is correct')
-      res.cookie('username',username,{maxAge:10000*60*24})
-      res.cookie('login',true,{maxAge:10000*60*24})
+      req.session.username = username
+      req.session.adminlogin = true
+      req.session.cookie.maxAge = 10000*60*24
+      req.session.save()
+      // res.cookie('username',username,{maxAge:10000*60*24})
+      // res.cookie('login',true,{maxAge:10000*60*24})
       res.writeHead(302, {
         'Location': '/manage'
       });
@@ -448,8 +447,12 @@ router.post('/loginaction', function(req, res) {
     
     } else {
       console.log("Credentials wrong");
-      res.cookie('username','',{maxAge:10000*60*24})
-      res.cookie('login',false,{maxAge:10000*60*24})
+      req.session.username = username
+      req.session.adminlogin = false
+      req.session.cookie.maxAge = 10000*60*24
+      req.session.save()
+      // res.cookie('username','',{maxAge:10000*60*24})
+      // res.cookie('login',false,{maxAge:10000*60*24})
       const obj = [{err:'Credentials wrong 1',username1:username }];
       res.render('login.ejs',{
         obj:obj
@@ -466,6 +469,53 @@ router.post('/loginaction', function(req, res) {
 
    
 })
+
+router.get('/form', function(req, res) {
+  res.status(200)
+    
+  // if (req.cookies["adminlogin"]) {
+    if (req.session.username != '' && req.session.username !== undefined) {
+      const obj = [];
+      res.render('form.ejs',{
+        obj:obj
+      }) 
+  }else{
+    res.writeHead(302, {
+      'Location': '/login'
+    });
+    res.end();
+  }
+})
+
+router.get('/manage', function(req, res) {
+ 
+  // if (req.cookies["adminlogin"]) {
+    if (req.session.username != '' && req.session.username !== undefined) {
+    
+          // find all athletes who play tennis, selecting the 'name' and 'age' fields
+          const exists_sku = products.find({ sku: { $ne: null } } ).then((data) => {
+            if(data != null && data != '') {     
+              
+              res.render('manage.ejs',{
+                obj:data
+              }) 
+            }else{
+              
+              res.writeHead(302, {
+                'Location': '/form'
+                //add other headers here...
+              });
+              res.end();
+            }
+          });
+    }else{
+      res.writeHead(302, {
+        'Location': '/login'
+      });
+      res.end();
+    }
+ 
+  })
 
 
 // Set Port
