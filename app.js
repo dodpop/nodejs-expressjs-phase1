@@ -367,12 +367,29 @@ router.get('/product/:id', function(req, res) {
   
   
  
-    var admin_user_model = require('./models/adminusers_model');
-    admin_user_model.create({username : 'Test', password : '12345', email : 'kusumoto.com@gmail.com'}  );
-    res.writeHead(302, {
-      'Location': '/login'
-    });
-    res.end();
+        var admin_user_model = require('./models/adminusers_model');
+        admin_user_model.findOne({username: 'Test'  })
+        .then(admindata => {
+        if (admindata){
+
+        } else {
+         
+              admin_user_model.create({username : 'Test', password : '12345', email : 'kusumoto.com@gmail.com'}  );
+              res.writeHead(302, {
+                'Location': '/login'
+              });
+              res.end();
+              
+        }
+
+          
+        })
+        .catch(err => {
+        console.log(err)
+        })
+
+
+  
 })
 
 router.get('/login', function(req, res) {
